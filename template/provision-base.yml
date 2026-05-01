@@ -1,0 +1,116 @@
+---
+- name: Provision PayCore base template with Docker
+  hosts: proxmox_vms
+  become: true
+
+  vars:
+    packages:
+      - wireguard-tools
+      - python3-pip
+      - python3-venv
+      - qemu-guest-agent
+      - unattended-upgrades
+      - jq
+      - curl
+      - ca-certificates
+      - gnupg
+
+  tasks:
+    - name: Enable universe repository
+      apt_repository:
+        repo: "deb http://archive.ubuntu.com/ubuntu {{ ansible_distribution_release }} main restricted universe multiverse"
+        state: present
+
+    - name: Ensure updates repo is enabled
+      apt_repository:
+        repo: "deb http://archive.ubuntu.com/ubuntu {{ ansible_distribution_release }}-updates main restricted universe multiverse"
+        state: present
+
+    - name: Update apt cache
+      apt:
+        update_cache: true
+
+    - name: Install required packages
+      apt:
+        name: "{{ packages }}"
+        state: present
+
+    # Docker Installation
+    # Source: https://docs.docker.com/engine/install/ubuntu/
+    - name: Create Docker keyring directory
+      file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: '0755'
+
+    - name: Download Docker GPG key
+      get_url:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        dest: /etc/apt/keyrings/docker.asc
+        mode: '0644'
+
+    - name: Add Docker repository
+      apt_repository:
+        repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+        state: present
+        filename: docker
+        update_cache: yes
+
+    - name: Install Docker Engine and Docker Compose plugin
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+
+    - name: Ensure Docker service is enabled
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Add ubuntu user to docker group
+      user:
+        name: ubuntu
+        groups: docker
+        append: true
+      notify: restart docker
+
+    - name: Enable qemu-guest-agent
+      systemd:
+        name: qemu-guest-agent
+        enabled: true
+        state: started
+
+    # python3-docker is the distro-packaged SDK, no pip required
+    # Source: https://packages.ubuntu.com/jammy/python3-docker
+    - name: Install Python Docker SDK
+      apt:
+        name: python3-docker
+        state: present
+
+    - name: Disable password SSH auth
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?PasswordAuthentication'
+        line: 'PasswordAuthentication no'
+      notify: restart sshd
+
+    - name: Clean apt cache before templating
+      apt:
+        autoclean: true
+        autoremove: true
+
+  handlers:
+    - name: restart sshd
+      systemd:
+        name: ssh
+        state: restarted
+
+    - name: restart docker
+      systemd:
+        name: docker
+        state: restarted
