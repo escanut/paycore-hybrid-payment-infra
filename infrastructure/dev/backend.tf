@@ -10,10 +10,7 @@ terraform {
   } 
 
   backend "local" {
-        path = "dev.tfstate" 
+        path = "dev.tfstate"
   }
 }
 
-provider "aws" {
-    region = "us-east-1"
-}

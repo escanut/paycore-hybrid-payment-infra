@@ -1,5 +1,9 @@
 .terraform/*
 .tfstate
 .tfvars
+infrastructure/dev/*.tfstate
+
+infrastructure/prod/*.tfstate.*
+
 
 /template/jammy-server-cloudimg-amd64.img
