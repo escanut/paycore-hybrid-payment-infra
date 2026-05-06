@@ -6,8 +6,13 @@ set -euxo pipefail
 apt-get update -y
 apt-get install -y wireguard
 
+
+# Generate unique keypair for this instance
+wg genkey | tee /etc/wireguard/private.key | wg pubkey > /etc/wireguard/public.key
+chmod 600 /etc/wireguard/private.key
+
 # Create the wg0.conf file
-cat > /etc/wireguard/wg <<EOF
+cat > /etc/wireguard/wg0.conf <<EOF
 [Interface]
 Address = ${wg_interface_address}
 ListenPort = 51820
@@ -27,3 +32,6 @@ sysctl -p
 # systemctl for services and apps
 systemctl enable wg-quick@wg0
 systemctl start wg-quick@wg0
+
+
+

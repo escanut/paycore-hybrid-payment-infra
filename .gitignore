@@ -1,9 +1,18 @@
 .terraform/*
 .tfstate
 .tfvars
-infrastructure/dev/*.tfstate
 
-infrastructure/prod/*.tfstate.*
+aws-infra/dev/*.tfstate*
+aws-infra/dev/.terraform/*
 
 
+
+aws-infra/prod/*.tfstate.*
+aws-infra/terraform.tfstate
+aws-infra/modules/VPN_Networking/scripts/failover.zip
+
+peer*
+scripts.sh
+
+/on-prem/ansible/vars/wg_vars.yml
 /template/jammy-server-cloudimg-amd64.img
