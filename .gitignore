@@ -16,3 +16,7 @@ scripts.sh
 
 /on-prem/ansible/vars/wg_vars.yml
 /template/jammy-server-cloudimg-amd64.img
+
+.env
+app/backend/fastapi
+__pycache__

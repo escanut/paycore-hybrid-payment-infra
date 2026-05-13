@@ -1,0 +1,23 @@
+services:
+  database:
+    image: postgres:17
+    container_name: paycore-db
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD:  ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      # Temporary, when we add the apps into compose, no need for this
+      - "5432:5432" 
+    volumes:
+      # postgres_data is our managed mount point, cddefined outside a service
+      - postgres_data:/var/lib/postgresql/data
+
+
+
+# Docker managed volumes are defined at root lovel 
+volumes:
+  postgres_data:
