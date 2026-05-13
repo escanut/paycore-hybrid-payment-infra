@@ -18,6 +18,6 @@ services:
 
 
 
-# Docker managed volumes are defined at root lovel 
+# Docker managed volumes are defined at root level 
 volumes:
   postgres_data:
