@@ -16,7 +16,30 @@ services:
       # postgres_data is our managed mount point, cddefined outside a service
       - postgres_data:/var/lib/postgresql/data
 
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
+  api:
+    build: ./backend
+    container_name: paycore-api
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+    depends_on:
+        database:
+          condition: service_healthy
+
+    # To initializr the tables of the database first
+    command: >
+      sh -c "alembic upgrade head &&
+            uvicorn main:app --host 0.0.0.0 --port 8000 --reload"
 
 # Docker managed volumes are defined at root level 
 volumes:
