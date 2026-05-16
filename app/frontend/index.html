@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PayCore — B2B Payment Infrastructure</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+  <!-- ── NAV ── -->
+  <nav>
+    <div class="nav-logo">Pay<span>Core</span></div>
+    <ul class="nav-links">
+      <li><a href="#endpoints">Endpoints</a></li>
+      <li><a href="#playground">Playground</a></li>
+      <li><a href="#transactions">Transactions</a></li>
+      <li><a href="#architecture">Architecture</a></li>
+    </ul>
+    <button class="nav-cta" onclick="scrollTo('playground')">Try the API</button>
+  </nav>
+
+  <!-- ── HERO BAND ── -->
+  <div class="hero-band">
+    <div class="hero-text">
+      <div class="hero-badge">B2B Payment Middleware</div>
+      <h1 class="hero-title">
+        Payment infrastructure<br/>
+        <em>built for scale</em>
+      </h1>
+      <p class="hero-sub">
+        PayCore tokenises card data, queues transactions, and routes settlements
+        through a hybrid on-prem and AWS serverless pipeline.
+      </p>
+      <div class="hero-actions">
+        <button class="btn-primary" onclick="scrollTo('playground')">Process a payment</button>
+        <button class="btn-outline" onclick="scrollTo('transactions')">View transactions</button>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="hero-card-stack">
+        <div class="pay-card back">
+          <div class="card-chip"></div>
+          <div class="card-number">**** **** **** 0000</div>
+        </div>
+        <div class="pay-card front">
+          <div class="card-chip"></div>
+          <div>
+            <div class="card-label">PAYCORE MERCHANT</div>
+            <div class="card-number">**** **** **** 4242</div>
+          </div>
+        </div>
+        <div class="terminal-pill">
+          <div class="terminal-dot"></div>
+          <span class="terminal-text">tx.status: queued</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── ENDPOINTS ── -->
+  <section class="endpoints" id="endpoints">
+    <div class="section-header">
+      <div class="section-label">API Reference</div>
+      <h2 class="section-title">Explore the payment endpoints</h2>
+      <p class="section-sub">Four routes covering the full payment lifecycle — from card ingestion to settlement status.</p>
+    </div>
+    <div class="endpoint-scroller">
+      <div class="ep-card" onclick="scrollTo('playground')">
+        <div class="ep-icon">💳</div>
+        <span class="ep-method post">POST</span>
+        <div class="ep-route">/api/payment/</div>
+        <div class="ep-name">Process payment</div>
+        <div class="ep-desc">Submit a card PAN with amount, currency, and merchant ID. Returns a tokenised transaction ID.</div>
+      </div>
+      <div class="ep-card" onclick="scrollTo('transactions')">
+        <div class="ep-icon">📋</div>
+        <span class="ep-method get">GET</span>
+        <div class="ep-route">/api/transactions/</div>
+        <div class="ep-name">List transactions</div>
+        <div class="ep-desc">Retrieve paginated transaction history. Supports skip/limit query params up to 100 records.</div>
+      </div>
+      <div class="ep-card" onclick="switchTab('lookup'); scrollTo('playground')">
+        <div class="ep-icon">🔍</div>
+        <span class="ep-method get">GET</span>
+        <div class="ep-route">/api/transactions/{token}</div>
+        <div class="ep-name">Get transaction</div>
+        <div class="ep-desc">Look up a specific transaction by its UUID token. Returns full record including status.</div>
+      </div>
+      <div class="ep-card" onclick="switchTab('patch'); scrollTo('playground')">
+        <div class="ep-icon">🔧</div>
+        <span class="ep-method patch">PATCH</span>
+        <div class="ep-route">/api/transactions/{token}/status</div>
+        <div class="ep-name">Update status</div>
+        <div class="ep-desc">Patch the status of a queued transaction. Used by Lambda after downstream validation.</div>
+      </div>
+    </div>
+    <div class="section-cta">
+      <button class="btn-primary" onclick="scrollTo('playground')">Open playground</button>
+      <button class="btn-outline btn-outline-blue" onclick="checkHealth()">Check API health</button>
+    </div>
+  </section>
+
+  <!-- ── PLAYGROUND ── -->
+  <div class="interactive" id="playground">
+    <div class="interactive-left">
+      <div class="int-label">Live Playground</div>
+      <h2 class="int-title">Test the API directly</h2>
+      <p class="int-sub">
+        All requests go to the real FastAPI backend. PAN data is masked before storage —
+        only the last 4 digits and a UUID token are persisted in PostgreSQL.
+      </p>
+      <button class="status-pill" onclick="checkHealth()">
+        <div class="status-dot"></div>
+        <span id="health-text">Check API status</span>
+      </button>
+      <div class="feature-list">
+        <div class="feature-block">
+          <h4>PAN tokenisation</h4>
+          <p>Card number is replaced with a UUID before any DB write. Raw PAN never persists.</p>
+        </div>
+        <div class="feature-block">
+          <h4>Structured JSON logging</h4>
+          <p>Every request is logged via python-json-logger to stdout, captured by Docker.</p>
+        </div>
+        <div class="feature-block">
+          <h4>Async status pipeline</h4>
+          <p>Transactions start as <code class="inline-code">queued</code> and are patched by Lambda after settlement validation.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-panel">
+      <h3><span class="form-panel-dot"></span>API Playground</h3>
+      <div class="form-tabs">
+        <button class="tab-btn active" id="payment-tab" onclick="switchTab('payment')">Process Payment</button>
+        <button class="tab-btn" id="lookup-tab" onclick="switchTab('lookup')">Token Lookup</button>
+        <button class="tab-btn" id="patch-tab" onclick="switchTab('patch')">Patch Status</button>
+      </div>
+
+      <!-- PAYMENT TAB -->
+      <div class="tab-content active" id="tab-payment">
+        <div class="form-group">
+          <label>Card PAN</label>
+          <input type="text" id="pan" placeholder="4111 1111 1111 1111" maxlength="19"/>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Amount</label>
+            <input type="number" id="amount" placeholder="5000.00" step="0.01" min="0.01"/>
+          </div>
+          <div class="form-group">
+            <label>Currency</label>
+            <select id="currency">
+              <option value="NGN">NGN</option>
+              <option value="USD">USD</option>
+              <option value="GBP">GBP</option>
+              <option value="EUR">EUR</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Merchant ID</label>
+          <input type="text" id="merchant-id" placeholder="MERCH_001"/>
+        </div>
+        <button class="submit-btn" id="pay-btn" onclick="submitPayment()">Submit payment →</button>
+        <div class="response-box" id="pay-response"></div>
+      </div>
+
+      <!-- LOOKUP TAB -->
+      <div class="tab-content" id="tab-lookup">
+        <div class="form-group">
+          <label>Transaction Token (UUID)</label>
+          <input type="text" id="lookup-token" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"/>
+        </div>
+        <button class="submit-btn" onclick="lookupTransaction()">Fetch transaction →</button>
+        <div class="response-box" id="lookup-response"></div>
+      </div>
+
+      <!-- PATCH TAB -->
+      <div class="tab-content" id="tab-patch">
+        <div class="form-group">
+          <label>Transaction Token (UUID)</label>
+          <input type="text" id="patch-token" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"/>
+        </div>
+        <div class="form-group">
+          <label>New Status</label>
+          <select id="patch-status">
+            <option value="processed">processed</option>
+            <option value="failed">failed</option>
+            <option value="flagged">flagged</option>
+            <option value="queued">queued</option>
+          </select>
+        </div>
+        <button class="submit-btn" onclick="patchStatus()">Update status →</button>
+        <div class="response-box" id="patch-response"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TRUST BAR ── -->
+  <div class="trust-bar">
+    <div class="trust-label">Trusted by forward-thinking fintech teams</div>
+    <div class="trust-logos">
+      <span class="trust-logo">Nairaly</span>
+      <span class="trust-logo">MerchantX</span>
+      <span class="trust-logo">VeriFlow</span>
+      <span class="trust-logo">PayNode</span>
+      <span class="trust-logo">SettleHQ</span>
+      <span class="trust-logo">CardBridge</span>
+    </div>
+  </div>
+
+  <!-- ── TRANSACTIONS TABLE ── -->
+  <section class="tx-section" id="transactions">
+    <div class="section-header section-header--left">
+      <div class="section-label">Transaction Ledger</div>
+      <h2 class="section-title">Live transaction records</h2>
+    </div>
+    <div class="tx-controls">
+      <input class="tx-search" type="text" id="tx-filter" placeholder="Filter by token or merchant ID..." oninput="filterTx()"/>
+      <button class="tx-load-btn" onclick="loadTransactions()">Refresh ↻</button>
+    </div>
+    <div class="tx-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Token</th>
+            <th>Merchant ID</th>
+            <th>Amount</th>
+            <th>Currency</th>
+            <th>Status</th>
+            <th>Created</th>
+          </tr>
+        </thead>
+        <tbody id="tx-tbody">
+          <tr><td colspan="6" class="tx-empty">Click Refresh to load transactions</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ── ARCHITECTURE ── -->
+  <div class="dark-section" id="architecture">
+    <div class="dark-grid">
+      <div class="section-header section-header--left">
+        <div class="section-label section-label--accent">Infrastructure</div>
+        <h2 class="section-title section-title--white">
+          Built for <em class="title-em">businesses of every scale</em>
+        </h2>
+        <p class="section-sub section-sub--muted">
+          PayCore runs on a hybrid Proxmox and AWS serverless stack. On-prem handles
+          ingestion and storage. AWS handles the asynchronous settlement pipeline.
+        </p>
+        <div class="dark-cta">
+          <button class="btn-primary">Read the docs</button>
+          <button class="btn-outline">View on GitHub</button>
+        </div>
+      </div>
+      <div class="dark-right">
+        <div class="feature-block">
+          <h4>Proxmox on-prem</h4>
+          <p>FastAPI + PostgreSQL run in Docker on a Proxmox VM. WireGuard VPN provides the secure tunnel to AWS.</p>
+        </div>
+        <div class="feature-block">
+          <h4>AWS Lambda + SQS</h4>
+          <p>Queued transactions are dispatched to SQS. Lambda consumers validate and settle, then PATCH status back via the API.</p>
+        </div>
+        <div class="feature-block">
+          <h4>HashiCorp Vault</h4>
+          <p>All secrets are dynamically issued by Vault. No static credentials in environment files or Terraform state.</p>
+        </div>
+        <div class="feature-block">
+          <h4>PCI DSS alignment</h4>
+          <p>PAN data is tokenised at ingestion. Raw card numbers never touch the database layer or log streams.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── FOOTER ── -->
+  <footer>
+    <div class="footer-logo">Pay<span>Core</span></div>
+    <div class="footer-links">
+      <a href="/api/docs" target="_blank">Swagger UI</a>
+      <a href="/api/redoc" target="_blank">ReDoc</a>
+      <a href="/api/health">Health</a>
+    </div>
+    <div class="footer-meta">v0.1.0 · FastAPI · PostgreSQL 17 · Ubuntu 22.04</div>
+  </footer>
+
+  <!-- ── HEALTH BADGE ── -->
+  <div id="health-indicator" onclick="checkHealth()">
+    <div id="health-dot"></div>
+    <span id="health-badge-text">API</span>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
