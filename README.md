@@ -19,7 +19,6 @@ The deployed VM runs the full application stack:
 - **Frontend** -- Static HTML/CSS/JS, used for demonstration
 - **Backend** -- Python FastAPI
 - **Database** -- PostgreSQL
-- **Secrets** -- HashiCorp Vault
 - **Runtime** -- FastAPI and PostgreSQL run as Docker containers via Docker Compose
 
 The VM dials out to AWS over WireGuard on UDP 51820 and forwards transactions to an SQS queue.
@@ -127,8 +126,6 @@ This project is in active development.
 
 **Not yet built**
 
-- FastAPI backend, PostgreSQL, and HashiCorp Vault on the on-prem VM
-- Frontend static app
 - SQS queue, fraud-check Lambda, DynamoDB, and SNS alerting
 - S3 raw transaction archival
 - Terraform remote backend with S3 native state locking
