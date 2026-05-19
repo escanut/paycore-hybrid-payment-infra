@@ -4,6 +4,7 @@ from database import get_db
 from db_models.db_transaction import Transaction
 from response_schemas.payment import TransactionResponse
 from typing import List
+from services.dependencies import verify_callback_token
 import logging
 
 router = APIRouter(prefix="/transactions", tags=["Transactions"])
@@ -58,7 +59,7 @@ def get_transaction(token: str, db: Session = Depends(get_db)):
 # we use it only to patch status
 # Lambda will use this to after it has validated the transaction
 @router.patch("/{token}/status")
-def update_status(token: str, status: str, db: Session = Depends(get_db)):
+def update_status(token: str, status: str, db: Session = Depends(get_db), _: None = Depends(verify_callback_token)):
     
     try:
         tx = db.query(Transaction).filter(Transaction.token == token).first()

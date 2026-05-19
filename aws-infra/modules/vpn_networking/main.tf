@@ -151,7 +151,7 @@ resource "aws_instance" "wg_ec2" {
 
 resource "aws_key_pair" "wg_key" {
   key_name = "wg-key"
-  public_key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH1AJTfpQ4Ojzfopu8vsRyFdy52mDjuNG10ybP0XxgmH victorojeje@ubuntu"
+  public_key = var.ec2_pub_key
 }
 
 
@@ -199,13 +199,14 @@ resource "aws_iam_role_policy" "failover_lambda" {
   })
 }
 
+# Lambda script
 data "archive_file" "failover_lambda" {
   type = "zip"
   source_file = "${path.module}/scripts/failover.py"
   output_path = "${path.module}/scripts/failover.zip"
 }
 
-# Lambda file
+
 resource "aws_lambda_function" "failover" {
   filename         = data.archive_file.failover_lambda.output_path
   function_name    = "paycore-wg-failover"

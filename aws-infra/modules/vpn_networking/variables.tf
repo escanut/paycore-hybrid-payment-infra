@@ -15,3 +15,7 @@ variable "on_prem_public_key" {
 variable "region_name" {
   type = string
 }
+
+variable "ec2_pub_key" {
+  type = string
+}

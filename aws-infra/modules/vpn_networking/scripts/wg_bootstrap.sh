@@ -16,7 +16,7 @@ PrivateKey = ${wg_private_key}
 
 [Peer]
 PublicKey = ${wg_peer_public_key}
-AllowedIPS = ${wg_peer_allowed_ips}
+AllowedIPs = ${wg_peer_allowed_ips}
 EOF
 
 chmod 600 /etc/wireguard/wg0.conf

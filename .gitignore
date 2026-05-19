@@ -20,3 +20,7 @@ scripts.sh
 .env
 app/backend/fastapi
 __pycache__
+
+aws-infra/lambda
+
+wireguard.sh

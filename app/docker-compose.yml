@@ -3,18 +3,16 @@ services:
     image: postgres:17
     container_name: paycore-db
     restart: unless-stopped
-    env_file:
-      - .env
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD:  ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_DB: paycore
     volumes:
       # postgres_data is our managed mount point, cddefined outside a service
       - postgres_data:/var/lib/postgresql/data
 
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d paycore"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -23,8 +21,6 @@ services:
     build: ./backend
     container_name: paycore-api
     restart: unless-stopped
-    env_file:
-      - .env
     volumes:
       - ./backend:/app
     depends_on:
@@ -49,8 +45,6 @@ services:
     image: cloudflare/cloudflared:latest
     container_name: paycore-tunnel
     restart: unless-stopped
-    env_file:
-      - .env
     environment:
       - TUNNEL_TOKEN=${CLOUDFLARE_TOKEN}
     command: >
