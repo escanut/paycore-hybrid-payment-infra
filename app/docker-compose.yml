@@ -21,6 +21,13 @@ services:
     build: ./backend
     container_name: paycore-api
     restart: unless-stopped
+    environment:
+      DB_USERNAME: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      SECRET_KEY: ${SECRET_KEY}
+      CALLBACK_API_KEY: ${CALLBACK_API_KEY}
+      AWS_REGION: ${AWS_REGION}
+      CLOUDFLARE_TOKEN: ${CLOUDFLARE_TOKEN}
     volumes:
       - ./backend:/app
     depends_on:
