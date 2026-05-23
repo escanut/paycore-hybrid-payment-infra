@@ -1,0 +1,27 @@
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+
+# AWS
+aws-infra/modules/vpn_networking/scripts/failover.zip
+aws-infra/lambda/
+
+# Ansible secrets
+on-prem/ansible/vars/wg_vars.yml
+on-prem/ansible/vars/vault.yml
+on-prem/ansible-vault
+
+# App
+.env
+__pycache__/
+app/backend/fastapi/
+
+# Scripts
+wireguard.sh
+scripts.sh
+peer*
+
+# Template image
+template/jammy-server-cloudimg-amd64.img

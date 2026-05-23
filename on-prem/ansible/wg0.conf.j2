@@ -1,0 +1,16 @@
+[Interface]
+Address = {{ wg_interface_address }}
+ListenPort = {{ wg_listen_port }}
+PrivateKey = {{ wg_private_key }}
+
+[Peer]
+PublicKey = {{ wg_peer_public_keys[0] }}
+AllowedIPs = {{ wg_peer_allowed_ips[0] }}
+Endpoint = {{ wg_peer_endpoint }}
+PersistentKeepalive = {{ wg_keepalive }}
+
+[Peer]
+PublicKey = {{ wg_peer_public_keys[1] }}
+AllowedIPs = {{ wg_peer_allowed_ips[1] }}
+Endpoint = {{ wg_peer_endpoint }}
+PersistentKeepalive = {{ wg_keepalive }}

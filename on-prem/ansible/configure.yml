@@ -1,0 +1,52 @@
+---
+
+- name: Configure WireGuard on Proxmox VM
+  hosts: proxmox_vms
+  become: true
+  vars_files:
+    - vars/wg_vars.yml
+    - vars/vault.yml
+
+
+
+  tasks:
+    - name: Confirm WireGuard is installed
+      package:
+        name: wireguard
+        state: present
+      
+    - name: Create wg0.conf from template .j2 template file
+      template:
+        src: wg0.conf.j2
+        dest: /etc/wireguard/wg0.conf
+        owner: root
+        group: root
+        mode: "0600"
+
+    - name: Enable and start WireGuard tunnel
+      systemd:
+        name: wg-quick@wg0
+        enabled: true
+        state: started
+
+    - name: Verify Tunnel works
+      command: wg show wg0
+      register: wg_status
+      changed_when: false
+    
+    - name: Ensure .ssh directory exists on VM
+      file:
+        path: /home/ubuntu/.ssh
+        state: directory
+        owner: ubuntu
+        group: ubuntu
+        mode: "0700"
+    
+    - name: Push deploy private key to VM
+      copy:
+        content: "{{ deploy_private_key }}"
+        dest: /home/ubuntu/.ssh/paycore-deploy
+        owner: ubuntu
+        mode: "0600"
+      no_log: true
+    

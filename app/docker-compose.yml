@@ -1,0 +1,74 @@
+services:
+  database:
+    image: postgres:17
+    container_name: paycore-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD:  ${DB_PASSWORD}
+      POSTGRES_DB: paycore
+    volumes:
+      # postgres_data is our managed mount point, cddefined outside a service
+      - postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d paycore"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build: ./backend
+    container_name: paycore-api
+    restart: unless-stopped
+    environment:
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      SECRET_KEY: ${SECRET_KEY}
+      CALLBACK_API_KEY: ${CALLBACK_API_KEY}
+      AWS_REGION: ${AWS_REGION}
+      CLOUDFLARE_TOKEN: ${CLOUDFLARE_TOKEN}
+      SQS_QUEUE_URL: ${SQS_QUEUE_URL}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+
+    ports:
+      - "${WG_IP}:8000" 
+    volumes:
+      - ./backend:/app
+    depends_on:
+        database:
+          condition: service_healthy
+    # To initializr the tables of the database first
+    command: >
+      sh -c "alembic upgrade head &&
+            uvicorn main:app --host 0.0.0.0 --port 8000 --reload"
+
+  nginx:
+    image: nginx:alpine
+    container_name: paycore-nginx
+    restart: unless-stopped
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./frontend:/usr/share/nginx/html:ro
+    depends_on:
+      - api  
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: paycore-tunnel
+    restart: unless-stopped
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TOKEN}
+    command: >
+      tunnel --no-autoupdate run
+    depends_on:
+      - nginx
+
+      
+
+ 
+
+# Docker managed volumes are defined at root level 
+volumes:
+  postgres_data:

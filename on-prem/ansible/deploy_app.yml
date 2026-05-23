@@ -1,0 +1,124 @@
+---
+
+- name: Deploy Paycore app
+  hosts: proxmox_vms
+  become: true
+  vars_files:
+    - vars/vault.yml
+    - vars/wg_vars.yml
+
+  
+  vars:
+    app_dest: /opt/paycore
+
+  tasks:
+    - name: Verify Docker compose plugin is present
+      apt:
+        name: docker-compose-plugin
+        state: present
+        update_cache: yes
+    
+    - name: Install git 
+      apt:
+        name:
+          - git
+        state: present
+        update_cache: yes
+
+    - name: Create app directory
+      file:
+        path: "{{ app_dest }}"
+        state: directory
+        owner: ubuntu
+        group: ubuntu
+        mode: "0755"
+
+    - name: Clear stale GitHub known_hosts entry
+      shell: ssh-keygen -f "/home/ubuntu/.ssh/known_hosts" -R "github.com"
+      become: false
+      ignore_errors: true
+
+    - name: Pull latest code from PayCore repo
+      git:
+        repo: "git@github.com:escanut/paycore-hybrid-payment-infra.git"
+        dest: "{{ app_dest }}"
+        version: main
+        force: yes
+        key_file: /home/ubuntu/.ssh/paycore-deploy
+        accept_hostkey: yes
+      become: false
+
+
+    - name: Fetch DB secret
+      command: >
+        aws secretsmanager get-secret-value
+        --secret-id paycore/internal/db
+        --region us-east-1
+        --query SecretString
+        --output text
+      delegate_to: localhost
+      become: false
+      register: db_secret_raw
+      changed_when: false
+      no_log: true
+
+
+    - name: Fetch app secret
+      command: >
+        aws secretsmanager get-secret-value
+        --secret-id paycore/internal/config
+        --region us-east-1
+        --query SecretString
+        --output text
+      delegate_to: localhost
+      become: false
+      register: app_secret_raw
+      changed_when: false
+      #no_log: true 
+    
+    - name: Fetch SQS queue URL
+      command: >
+        aws sqs get-queue-url
+        --queue-name paycore-transactions
+        --region us-east-1
+        --query QueueUrl
+        --output text
+      delegate_to: localhost
+      become: false
+      register: sqs_url
+      changed_when: false
+
+    - name: Parse secrets into facts
+      set_fact:
+        db: "{{ db_secret_raw.stdout | from_json }}"
+        app: "{{ app_secret_raw.stdout | from_json }}"
+      #no_log: true
+
+    - name: Start Docker Compose stack
+      community.docker.docker_compose_v2:
+        project_src: "{{ app_dest }}/app"
+        state: present
+        build: always
+        remove_orphans: true
+      environment:
+        DB_USERNAME: "{{ db.db_username }}"
+        DB_PASSWORD: "{{ db.db_password }}"
+        SECRET_KEY: "{{ app.secret_key }}"
+        CLOUDFLARE_TOKEN: "{{ app.cloudflare_token }}"
+        CALLBACK_API_KEY: "{{ app.callback_api_key }}"
+        AWS_REGION: "us-east-1"
+        SQS_QUEUE_URL: "{{ sqs_url.stdout }}"
+        AWS_ACCESS_KEY_ID: "{{ aws_access_key_id }}"
+        AWS_SECRET_ACCESS_KEY: "{{ aws_secret_access_key }}"
+        WG_IP: "{{ wg_interface_address | ansible.utils.ipaddr('address') }}"
+      #no_log: true
+
+
+    - name: Wait for health check
+      uri:
+        url: "http://{{ wg_interface_address | ansible.utils.ipaddr('address') }}:80/api/health"
+        status_code: 200
+      retries: 12
+      delay: 5
+      register: health
+      until: health.status == 200

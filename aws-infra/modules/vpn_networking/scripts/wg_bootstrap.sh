@@ -1,0 +1,36 @@
+#!/bin/bash
+set -euxo pipefail
+
+
+# We install wireGuard
+apt-get update -y
+apt-get install -y wireguard
+
+
+# Create the wg0.conf file
+cat > /etc/wireguard/wg0.conf <<EOF
+[Interface]
+Address = ${wg_interface_address}
+ListenPort = 51820
+PrivateKey = ${wg_private_key}
+
+[Peer]
+PublicKey = ${wg_peer_public_key}
+AllowedIPs = ${wg_peer_allowed_ips}
+EOF
+
+chmod 600 /etc/wireguard/wg0.conf
+
+# sysctl for kernel level tuning
+echo "net.ipv4.ip_forward=1" >> /etc/sysctl.conf
+sysctl -p
+
+# After sysctl -p, add this:
+iptables -t nat -A POSTROUTING -o wg0 -j MASQUERADE
+
+# systemctl for services and apps
+systemctl enable wg-quick@wg0
+systemctl start wg-quick@wg0
+
+
+
