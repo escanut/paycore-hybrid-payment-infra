@@ -33,7 +33,7 @@ services:
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
 
     ports:
-      - "${WG_IP}:8000" 
+      - "${WG_IP}:80:8000" 
     volumes:
       - ./backend:/app
     depends_on:
