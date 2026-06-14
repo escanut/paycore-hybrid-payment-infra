@@ -28,4 +28,4 @@ class Transaction(Base):
     status = Column(Enum(Transaction_Status), default=Transaction_Status.queued)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
-    ledger = relationship("Ledger", back_populates="transaction")
+    ledgers = relationship("LedgerEntry", back_populates="transactions")

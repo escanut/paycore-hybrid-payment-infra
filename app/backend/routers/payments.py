@@ -67,6 +67,14 @@ def process_payment(req: PaymentRequest,
             "merchant_id": tx.merchant_id,
             "status": tx.status
         })
+        
+        payment_response =  PaymentResponse(
+        status = tx.status,
+        token = token,
+        masked_pan = masked_pan,
+        amount = req.amount,
+        currency = req.currency
+        )
 
         response = sqs.send_message(
             QueueUrl=SQS_QUEUE_URL,
@@ -80,7 +88,7 @@ def process_payment(req: PaymentRequest,
         )
 
         if idempotency_key:
-            store_idempotency(db, idempotency_key, current_user.merchant_id, response.model_dump_json())
+            store_idempotency(db, idempotency_key, current_user.merchant_id, payment_response.model_dump_json())
 
         db.commit()
 
@@ -95,11 +103,7 @@ def process_payment(req: PaymentRequest,
         raise HTTPException(status_code=500, detail=f"Transaction Failed")
 
 
-    return PaymentResponse(
-        status = tx.status,
-        token = token,
-        masked_pan = masked_pan,
-        amount = req.amount,
-        currency = req.currency
-    )
+    return payment_response
+
+    
 

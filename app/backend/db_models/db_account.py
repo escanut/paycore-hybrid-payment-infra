@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, DateTime, Enum
+from sqlalchemy import Column, String, DateTime, Enum, ForeignKey
 from sqlalchemy.orm import relationship
 import enum, datetime
 from database import Base
@@ -18,5 +18,5 @@ class Account(Base):
     currency = Column(Enum(Account_Currency), default=Account_Currency.NGN)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
-    user = relationship("User", back_populates="accounts")
-    ledgers = relationship("Ledger_Entry", back_populates="accounts")
+    users = relationship("User", back_populates="accounts")
+    ledgers = relationship("LedgerEntry", back_populates="accounts")

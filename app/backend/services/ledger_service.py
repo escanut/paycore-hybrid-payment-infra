@@ -3,9 +3,8 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 from db_models.db_account import Account, Account_Currency
-from db_models.db_ledger import Ledger_Entry, LedgerMovement
+from db_models.db_ledger import LedgerEntry, LedgerMovement
 from db_models.db_idempotency import IdempotencyKey
-from decimal import Decimal
 
 def get_account(db: Session, merchant_id: str, currency: str):
     account = db.query(Account).filter(
@@ -26,11 +25,11 @@ def get_account(db: Session, merchant_id: str, currency: str):
 
 
 # Credit/Debit our Ledger
-def ledger_entry(db: Session, account_id: str, movement_direction: LedgerMovement, amount: float, transaction_token: str ) -> Ledger_Entry:
-    entry = Ledger_Entry(
+def ledger_entry(db: Session, account_id: str, movement_direction: LedgerMovement, amount: float, transaction_token: str ):
+    entry = LedgerEntry(
         id = str(uuid.uuid4()),
         account_id = account_id,
-        movement_direction = movement_direction
+        movement_direction = movement_direction,
         amount = amount,
         transaction_token = transaction_token
     )
@@ -41,12 +40,12 @@ def ledger_entry(db: Session, account_id: str, movement_direction: LedgerMovemen
 
 def get_balance(db: Session, account_id: str):
     rows = db.execute(
-        select(Ledger_Entry).where(Ledger_Entry.account_id == account_id)
+        select(LedgerEntry).where(LedgerEntry.account_id == account_id)
     ).scalars().all()
     
-    balance = Decimal(0)
+    balance = 0.0
     for row in rows:
-        if row.movement_direction == "credit":
+        if row.movement_direction == LedgerMovement.credit:
             balance += row.amount
         else:
             balance -= row.amount

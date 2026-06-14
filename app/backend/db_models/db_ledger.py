@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, DateTIme, Float
+from sqlalchemy import Column, String, DateTime, Float, ForeignKey, Enum
 from sqlalchemy.orm import relationship
 from database import Base
 import enum, datetime
@@ -19,5 +19,5 @@ class LedgerEntry(Base):
     transaction_token = Column(String, ForeignKey("transaction.token"), nullable=False, unique=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
-    account = relationship("Account", back_populates="ledger_entry")
-    transaction = relationship("Transaction", back_populates="ledger_entry")
+    accounts = relationship("Account", back_populates="ledgers")
+    transactions = relationship("Transaction", back_populates="ledgers")

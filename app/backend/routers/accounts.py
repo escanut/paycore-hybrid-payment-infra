@@ -5,6 +5,8 @@ from response_schemas.account_schema import AccountCreationResponse, AccountInfo
 from db_models.db_account import Account, Account_Currency
 from db_models.db_user import User
 from services.auth_service import get_current_user
+from services.ledger_service import get_account, get_balance
+
 import uuid, logging
 from typing import List
 
@@ -75,7 +77,7 @@ def get_account_by_id(
     account = db.query(Account).filter(
         Account.id == account_id,
         Account.merchant_id == current_user.merchant_id
-    )
+    ).first()
 
     if not account:
         logger.info("Account not found", extra={
@@ -92,3 +94,14 @@ def get_account_by_id(
 
     return account
     
+
+# For getting the balance
+@router.get("/balance/{currency}")
+def get_merchant_balance(currency: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    account = get_account(db, current_user.merchant_id, currency)
+    balance = get_balance(db, account.id)
+    return {
+        "account_id": account.id,
+        "currency": account.currency,
+        "balance": balance
+    }
