@@ -3,18 +3,20 @@ from sqlalchemy.orm import relationship
 import enum, datetime
 from database import Base
 
-# Enum class to show if account is active
-class Account_Status(str, enum.Enum):
-    active = "active"
-    disabled = "disabled"
 
+class Account_Currency(str, enum.Enum):
+    NGN = "NGN"
+    USD = "USD"
+    EUR = "EUR"
 
 
 class Account(Base):
     __tablename__ = "accounts"
 
     id = Column(String, primary_key=True)
-    merchant_id = (String, ForeignKey("users.merchant_id"))
+    merchant_id = Column(String, ForeignKey("users.merchant_id"), nullable=False)
+    currency = Column(Enum(Account_Currency), default=Account_Currency.NGN)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
     user = relationship("User", back_populates="accounts")
-    ledgers = relationship("Ledger", back_populates="accounts")
+    ledgers = relationship("Ledger_Entry", back_populates="accounts")

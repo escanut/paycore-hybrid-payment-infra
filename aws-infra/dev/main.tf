@@ -47,7 +47,6 @@ module "kms" {
 
 module "messaging" {
   source = "../modules/messaging"
-
   email = var.email
 }
 

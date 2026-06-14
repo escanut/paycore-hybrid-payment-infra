@@ -5,7 +5,7 @@ from alembic import context
 
 # Import our Base class and loads the models into memory
 from database import Base
-from db_models import db_user, db_transaction
+from db_models import db_user, db_transaction, db_account, db_idempotency, db_ledger
 import os
 from config import DATABASE_URL
 
