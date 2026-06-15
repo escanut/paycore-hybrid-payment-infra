@@ -13,7 +13,7 @@ variable "ec2_pub_key" {
 }
 
 variable "wg_private_keys" {
-  type = list(string)
+  type = string
 }
 
 variable "on_prem_public_key" {

@@ -4,7 +4,7 @@ variable "vpc_cidr" {
 }
 
 variable "wg_private_keys" {
-  type = list(string)
+  type = string
   sensitive = true
 }
 

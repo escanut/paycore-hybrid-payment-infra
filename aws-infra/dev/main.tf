@@ -37,7 +37,7 @@ module "compute" {
   db_username = var.db_username
   db_password = var.db_password
   subnet_ids = module.networking.public_subnet_ids
-  security_group_id = module.networking.lambda_security_group_id
+  vpc_id = module.networking.vpc_id
 
 }
 
