@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from routers import payments, health, transactions, auth, accounts
 from fastapi.middleware.cors import CORSMiddleware
+from prometheus_fastapi_instrumentator import Instrumentator
 import logger
 
 app = FastAPI(
@@ -9,6 +10,8 @@ app = FastAPI(
     description="B2B Payment Processing Middleware",
     version="0.1.0"
 )
+
+Instrumentator().instrument(app).expose(app)
 
 app.add_middleware(
     CORSMiddleware,

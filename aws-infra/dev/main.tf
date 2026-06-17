@@ -38,6 +38,8 @@ module "compute" {
   db_password = var.db_password
   subnet_ids = module.networking.public_subnet_ids
   vpc_id = module.networking.vpc_id
+  grafana_username = var.grafana_username
+  grafana_password = var.grafana_password
 
 }
 

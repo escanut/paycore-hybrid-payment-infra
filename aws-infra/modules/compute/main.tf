@@ -164,6 +164,8 @@ resource "aws_secretsmanager_secret_version" "config" {
     secret_key = var.secret_key
     cloudflare_token = var.cloudflare_token
     callback_api_key = var.callback_api_key
+    grafana_username = var.grafana_username
+    grafana_password = var.grafana_password
   })
 }
 
@@ -182,3 +184,4 @@ resource "aws_secretsmanager_secret_version" "db" {
 
   })
 }
+

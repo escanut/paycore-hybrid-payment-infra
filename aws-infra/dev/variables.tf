@@ -47,6 +47,13 @@ variable "proxmox_vpn_ip" {
   type = string
 }
 
+variable "grafana_username" {
+  type = string
+}
+
+variable "grafana_password" {
+  type = string
+}
 
 # Messaging variables
 variable "email" {

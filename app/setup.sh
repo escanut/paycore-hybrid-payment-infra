@@ -31,6 +31,10 @@ export AWS_REGION=us-east-1
 export SQS_QUEUE_URL=$(aws sqs get-queue-url --queue-name paycore-transactions --region us-east-1 --query QueueUrl --output text)
 export AWS_ACCESS_KEY_ID=$(aws configure get aws_access_key_id)
 export AWS_SECRET_ACCESS_KEY=$(aws configure get aws_secret_access_key)
+export GRAFANA_USERNAME=$(echo $APP_SECRET | jq -r .grafana_username)
+export GRAFANA_PASSWORD=$(echo $APP_SECRET | jq -r .grafana_password)
+export WG_IP=10.10.0.1
+
 
 
 # Bring up Nginx with HTTP-only config
