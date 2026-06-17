@@ -1,5 +1,17 @@
 # Lambda setup for processing transactions from sqs
 
+
+resource "aws_security_group" "lambda" {
+  vpc_id = var.vpc_id
+
+  egress {
+    from_port = 0
+    to_port = 0
+    protocol = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
 resource "aws_iam_role" "validator" {
     name = "paycore-validator-role"
 
@@ -117,7 +129,7 @@ resource "aws_lambda_function" "validator" {
 
   vpc_config {
     subnet_ids = var.subnet_ids
-    security_group_ids = [var.security_group_id]
+    security_group_ids = [aws_security_group.lambda.id]
   }
 
   environment {
@@ -152,6 +164,8 @@ resource "aws_secretsmanager_secret_version" "config" {
     secret_key = var.secret_key
     cloudflare_token = var.cloudflare_token
     callback_api_key = var.callback_api_key
+    grafana_username = var.grafana_username
+    grafana_password = var.grafana_password
   })
 }
 
@@ -170,3 +184,4 @@ resource "aws_secretsmanager_secret_version" "db" {
 
   })
 }
+

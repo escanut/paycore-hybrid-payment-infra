@@ -110,6 +110,8 @@
         SQS_QUEUE_URL: "{{ sqs_url.stdout }}"
         AWS_ACCESS_KEY_ID: "{{ aws_access_key_id }}"
         AWS_SECRET_ACCESS_KEY: "{{ aws_secret_access_key }}"
+        GRAFANA_USERNAME: "{{ app.grafana_username }}"
+        GRAFANA_PASSWORD: "{{ app.grafana_password }}"
         WG_IP: "{{ wg_interface_address | ansible.utils.ipaddr('address') }}"
       #no_log: true
 

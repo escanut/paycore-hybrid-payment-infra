@@ -18,6 +18,14 @@ variable "db_password" {
   type = string
 }
 
+variable "grafana_username" {
+  type = string
+}
+
+variable "grafana_password" {
+  type = string
+}
+
 variable "db_username" {
   type = string
 }
@@ -46,6 +54,7 @@ variable "subnet_ids" {
   type = list(string)
 }
 
-variable "security_group_id" {
+
+variable "vpc_id" {
   type = string
 }

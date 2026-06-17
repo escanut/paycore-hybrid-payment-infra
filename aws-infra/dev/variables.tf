@@ -13,7 +13,7 @@ variable "ec2_pub_key" {
 }
 
 variable "wg_private_keys" {
-  type = list(string)
+  type = string
 }
 
 variable "on_prem_public_key" {
@@ -47,6 +47,13 @@ variable "proxmox_vpn_ip" {
   type = string
 }
 
+variable "grafana_username" {
+  type = string
+}
+
+variable "grafana_password" {
+  type = string
+}
 
 # Messaging variables
 variable "email" {
